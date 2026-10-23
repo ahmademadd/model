@@ -161,7 +161,7 @@ def main() -> None:
         parser.error("--speed must be finite and positive")
     path = args.csv
     if path is None:
-        path = next(iter(sorted((ROOT / "preprocessing" / "data").rglob("part_*.csv"))), None)
+        path = next(iter(sorted((ROOT / "data" / "post_processing_relative_quaternions").rglob("*.csv"))), None)
         if path is None:
             parser.error("provide a CSV path or run preprocessing first")
     try:

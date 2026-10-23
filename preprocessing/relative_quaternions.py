@@ -6,7 +6,6 @@ from __future__ import annotations
 import argparse
 import csv
 import math
-import shutil
 from pathlib import Path
 
 
@@ -73,10 +72,11 @@ def preprocess_file(source: Path, destination: Path) -> int:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--input", type=Path, default=ROOT / "chopped_data")
-    parser.add_argument("--output", type=Path, default=ROOT / "preprocessing" / "data")
+    parser.add_argument("--input", type=Path, required=True, help="directory containing CSVs to preprocess")
+    parser.add_argument("--output", type=Path, default=ROOT / "data/post_processing_relative_quaternions", help="parent directory for outputs, grouped by input directory name")
     args = parser.parse_args()
-    source_root, output_root = args.input.resolve(), args.output.resolve()
+    source_root = args.input.resolve()
+    output_root = args.output.resolve() / source_root.name
     if source_root == output_root or source_root in output_root.parents:
         parser.error("output must be outside the input directory")
     sources = sorted(source_root.rglob("*.csv"))
@@ -86,11 +86,6 @@ def main() -> None:
     total = 0
     for source in motions:
         total += preprocess_file(source, output_root / source.relative_to(source_root))
-    for source in sources:
-        if source.name == "manifest.csv":
-            destination = output_root / source.relative_to(source_root)
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(source, destination)
     print(f"Preprocessed {len(motions)} motions ({total} samples) into {output_root}")
 
 
