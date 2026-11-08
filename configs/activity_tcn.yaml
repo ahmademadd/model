@@ -1,0 +1,19 @@
+# One complete repetition -> one activity. Input shape: (batch, time, features).
+seed: 42
+group_column: parent_recording_id
+
+model:
+  filters: 64
+  kernel_size: 5
+  dilations: [1, 2, 4, 8, 16, 32]
+  stacks: 1
+  dropout: 0.1
+  dense_units: 128
+  head_dropout: 0.2
+
+training:
+  batch_size: 32
+  epochs: 150
+  learning_rate: 0.001
+  patience: 15
+  class_weight: false
