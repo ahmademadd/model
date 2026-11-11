@@ -19,6 +19,13 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8,<10"]
+notebooks = [
+  "pandas",
+  "matplotlib",
+  "ipywidgets",
+  "jupyterlab",
+  "ipykernel",
+]
 
 [project.scripts]
 activity-audit = "activity_classifier.audit:main"

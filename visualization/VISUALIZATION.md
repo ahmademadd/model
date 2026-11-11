@@ -1,11 +1,13 @@
 # Wrist motion visualization
 
-For animated 3D orientation playback, run:
+For animated 3D orientation playback, activate the shared environment and run
+from the project root:
 
 ```bash
-.venv/bin/python visualize_quaternion_orientation.py
+source .venv-tcn/bin/activate
+python visualization/3D_quaternion/visualize_3D_quaternion_orientation.py
 # Or choose a raw or preprocessed recording:
-.venv/bin/python visualize_quaternion_orientation.py path/to/part_001.csv --speed 0.5
+python visualization/3D_quaternion/visualize_3D_quaternion_orientation.py path/to/part_001.csv --speed 0.5
 ```
 
 The default is the first processed motion in `preprocessing/data`. The window
@@ -16,8 +18,9 @@ Playback follows `secondsElapsed` at the requested speed and stops at the end.
 On a slow display, playback can skip samples to maintain timing; Previous/Next
 lets you inspect every sample individually. Drag the 3D view to change the camera.
 
-Requires NumPy and Matplotlib from `requirements.txt` and an interactive desktop
-Matplotlib backend. Quaternions are normalized and interpreted as scalar-first
+Requires NumPy and Matplotlib, installed by `python -m pip install -e '.[notebooks]'`
+from the project root using [pyproject.toml](../../pyproject.toml), and an interactive
+desktop Matplotlib backend. Quaternions are normalized and interpreted as scalar-first
 Hamilton active rotations from body coordinates into reference coordinates.
 Processed recordings therefore start aligned with the reference axes. Raw
 recordings retain their supplied reference frame. This displays orientation only;

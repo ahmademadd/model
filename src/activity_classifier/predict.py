@@ -8,7 +8,8 @@ from pathlib import Path
 
 import numpy as np
 
-from .preprocessing import Standardizer, load_sequence
+from .preprocessing import Standardizer, preprocess_quaternions
+from .sequence import load_sequence
 
 
 def load_bundle(run_dir: str | Path):
@@ -35,7 +36,9 @@ def predict_file(run_dir: str | Path, path: str | Path) -> dict:
     from tensorflow import keras
 
     model, preprocessing, classes = load_bundle(run_dir)
-    sequence = preprocessing.transform(load_sequence(path, preprocessing.feature_columns))
+    sequence = load_sequence(path, preprocessing.feature_columns)
+    sequence = preprocess_quaternions(sequence, preprocessing.feature_columns)
+    sequence = preprocessing.transform(sequence)
     inputs = {"sensors": sequence[None, ...], "valid": np.ones((1, len(sequence)), dtype=bool)}
     probabilities = keras.ops.softmax(model(inputs, training=False), axis=-1).numpy()[0]
     if not np.isfinite(probabilities).all():

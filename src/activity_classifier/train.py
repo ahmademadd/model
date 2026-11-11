@@ -11,7 +11,8 @@ import numpy as np
 
 from .config import load_config, save_config
 from .manifest import read_manifest, write_manifest
-from .preprocessing import Standardizer, load_sequence
+from .preprocessing import Standardizer, preprocess_quaternions
+from .sequence import load_sequence
 
 
 def validate_splits(records: list[dict], group_column: str) -> dict[str, list[dict]]:
@@ -71,9 +72,11 @@ def train(manifest: str | Path, run_dir: str | Path, config: dict) -> dict:
     # Deliberately do not read test sensor data during training/model selection.
     train_raw = [load_sequence(row["path"], features) for row in partitions["train"]]
     validation_raw = [load_sequence(row["path"], features) for row in partitions["validation"]]
-    preprocessing = Standardizer(features).fit(train_raw)
-    train_x = [preprocessing.transform(sequence) for sequence in train_raw]
-    validation_x = [preprocessing.transform(sequence) for sequence in validation_raw]
+    train_rotations = [preprocess_quaternions(sequence, features) for sequence in train_raw]
+    validation_rotations = [preprocess_quaternions(sequence, features) for sequence in validation_raw]
+    preprocessing = Standardizer(features).fit(train_rotations)
+    train_x = [preprocessing.transform(sequence) for sequence in train_rotations]
+    validation_x = [preprocessing.transform(sequence) for sequence in validation_rotations]
     train_y = [class_ids[row["activity"]] for row in partitions["train"]]
     validation_y = [class_ids[row["activity"]] for row in partitions["validation"]]
     settings = config["training"]

@@ -10,7 +10,8 @@ import numpy as np
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score
 
 from .manifest import read_manifest
-from .preprocessing import load_sequence
+from .preprocessing import preprocess_quaternions
+from .sequence import load_sequence
 
 
 def classification_metrics(labels, logits, classes: list[str]) -> dict:
@@ -56,8 +57,11 @@ def evaluate_run(run_dir: str | Path, split: str = "test") -> dict:
     model, preprocessing, classes = load_bundle(root)
     class_ids = {label: index for index, label in enumerate(classes)}
     labels = [class_ids[row["activity"]] for row in records]
-    sequences = [preprocessing.transform(load_sequence(row["path"], preprocessing.feature_columns))
-                 for row in records]
+    sequences = []
+    for row in records:
+        sequence = load_sequence(row["path"], preprocessing.feature_columns)
+        sequence = preprocess_quaternions(sequence, preprocessing.feature_columns)
+        sequences.append(preprocessing.transform(sequence))
     dataset = make_dataset(sequences, labels, config["training"]["batch_size"])
     logits = np.concatenate([model(batch, training=False).numpy() for batch, _ in dataset])
     metrics = classification_metrics(labels, logits, classes)

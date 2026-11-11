@@ -11,7 +11,7 @@ import numpy as np
 
 from .config import DEFAULT_FEATURES, load_config
 from .manifest import FIELDS, write_manifest
-from .preprocessing import load_sequence
+from .sequence import load_sequence
 
 
 def build_manifest(input_dir: str | Path, pattern: str = "part_*.csv",

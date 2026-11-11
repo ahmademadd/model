@@ -9,25 +9,34 @@ explicit masked mean/max pooling, and one multiclass head.
 
 ## Setup
 
-Use Python 3.10–3.12; this project was verified with Python 3.11. Its TensorFlow
-pin does not support Python 3.14. Keep the existing notebook environment separate.
+Use one Python 3.11 environment, `.venv-tcn`, for the classifier, notebooks,
+and visualizations. The TensorFlow pin does not support Python 3.14.
 
 ```sh
 python3.11 -m venv .venv-tcn
 source .venv-tcn/bin/activate
-python -m pip install -e '.[dev]'
+python -m pip install -e '.[dev,notebooks]'
 python -m pytest -q
 ```
 
 On this Mac, Python 3.11 is also available at `/opt/homebrew/bin/python3.11`.
-The dedicated environment has been created during scaffolding.
+The shared environment already exists on this checkout; activate it rather than
+creating another environment. In VS Code, select `.venv-tcn/bin/python` as the
+Python interpreter and **Python (model, 3.11)** as the notebook kernel. If the
+kernel is not listed, register it inside the environment:
+
+```sh
+python -m ipykernel install --sys-prefix --name model --display-name "Python (model, 3.11)"
+```
 
 [pyproject.toml](pyproject.toml) pins TensorFlow 2.19.1, Keras 3.10.0, and
 keras-tcn 3.5.6. Version 3.5.6 is used because the published 3.5.7 wheel declares
 `tensorflow-macos` as an unconditional dependency, which limits portability.
 The TensorFlow backend is required. GPU plugins are optional and are not installed
-by this scaffold. Existing notebook dependencies remain in
-[requirements.txt](requirements.txt).
+by this scaffold. [pyproject.toml](pyproject.toml) is the single source of dependency
+declarations: the `dev` extra adds test tools, and the `notebooks` extra adds
+notebook/visualization dependencies. The setup command installs both extras into
+the same environment.
 
 ## Structure
 
@@ -37,7 +46,8 @@ by this scaffold. Existing notebook dependencies remain in
 | [Audit](src/activity_classifier/audit.py) | Validate CSVs and catalog repetitions |
 | [Manifest](src/activity_classifier/manifest.py) | Read/write sample metadata and portable paths |
 | [Splits](src/activity_classifier/split.py) | Keep complete recording/subject/session groups together |
-| [Preprocessing](src/activity_classifier/preprocessing.py) | Shared CSV validation, relative quaternions, saved scalar scaling |
+| [Sequence loading](src/activity_classifier/sequence.py) | Read and validate recorded sensor values without transformations |
+| [Preprocessing](src/activity_classifier/preprocessing.py) | Explicit quaternion preprocessing and saved scalar scaling |
 | [Dataset](src/activity_classifier/dataset.py) | Right-pad batches and generate explicit masks |
 | [Layers](src/activity_classifier/layers.py) | Input validation and serializable masked pooling |
 | [Model](src/activity_classifier/model.py) | Import `TCN` and build the activity classifier |
@@ -71,6 +81,11 @@ Invalid samples are retained as `rejected` with reasons. The audit checks finite
 sensors, nonzero quaternion norms, increasing timestamps, required columns, and
 one constant nonempty activity per CSV. Length outside 300–400 is not by itself
 an error. Inference CSVs do not need an activity column.
+
+Auditing uses `sequence.load_sequence()` to read and validate recorded values.
+It does not normalize quaternions, change their reference frame or signs, or
+standardize channels. Those transformations are explicit model-input steps:
+`load_sequence()` → `preprocess_quaternions()` → `Standardizer.transform()`.
 
 **Review the manifest before splitting.** `accepted` means these automatic checks
 passed; it does not prove the repetition boundaries or activity annotation are
@@ -116,7 +131,8 @@ Choose a fresh run directory for every experiment. The training command:
 1. Validates split membership, groups, class coverage, unique IDs and paths.
 2. Loads accepted training and validation sequences (not test sensor files).
 3. Converts quaternions to normalized, sign-continuous, start-relative WXYZ
-   rotations; already-relative inputs remain compatible.
+   rotations with the explicit `preprocess_quaternions()` call; already-relative
+   inputs remain compatible. Loading and auditing do not perform this conversion.
 4. Fits scalar-channel means/scales on training timesteps only. Quaternion
    components retain their unit-rotation representation.
 5. Creates right-padded batches in `(batch, time, features)` order.
@@ -193,7 +209,7 @@ reversed sequences, and masks with internal gaps are not configuration options.
 Handle missing measurements separately before batching.
 
 All-empty sequences and nonfinite real sensor values are rejected. Tests verify
-padding/batch invariance, negative-valued masked maxima, finite gradients,
-preprocessing round trips, group leakage checks, normal `.keras` save/reload,
-and synthetic training through prediction. Import `activity_classifier.model`
+padding/batch invariance, negative-valued masked maxima, preprocessing round
+trips, group leakage checks, normal `.keras` save/reload, and one synthetic
+training-through-prediction smoke test. Import `activity_classifier.model`
 before loading a model manually to register the custom layers and TCN.
