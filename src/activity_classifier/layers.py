@@ -1,7 +1,7 @@
 """Serializable TensorFlow layers for right-padded sensor sequences."""
 
 import tensorflow as tf
-from tensorflow import keras
+import keras
 
 
 @keras.utils.register_keras_serializable(package="activity_classifier")

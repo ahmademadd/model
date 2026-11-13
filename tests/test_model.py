@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 import tensorflow as tf
-from tensorflow import keras
+import keras
 
 from activity_classifier.dataset import make_dataset
 from activity_classifier.layers import MaskedMeanMaxPooling1D

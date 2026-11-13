@@ -55,7 +55,7 @@ def validate_splits(records: list[dict], group_column: str) -> dict[str, list[di
 
 
 def train(manifest: str | Path, run_dir: str | Path, config: dict) -> dict:
-    from tensorflow import keras
+    import keras
 
     from .dataset import make_dataset
     from .evaluate import classification_metrics

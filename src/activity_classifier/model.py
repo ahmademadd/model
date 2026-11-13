@@ -4,7 +4,7 @@ import math
 from collections.abc import Mapping
 from numbers import Integral, Real
 
-from tensorflow import keras
+import keras
 from tcn import TCN
 
 from .layers import MaskedMeanMaxPooling1D, ValidateSequence

@@ -13,7 +13,7 @@ from .sequence import load_sequence
 
 
 def load_bundle(run_dir: str | Path):
-    from tensorflow import keras
+    import keras
     from . import model as _registered_layers  # noqa: F401
 
     root = Path(run_dir)
@@ -33,7 +33,7 @@ def load_bundle(run_dir: str | Path):
 
 
 def predict_file(run_dir: str | Path, path: str | Path) -> dict:
-    from tensorflow import keras
+    import keras
 
     model, preprocessing, classes = load_bundle(run_dir)
     sequence = load_sequence(path, preprocessing.feature_columns)
