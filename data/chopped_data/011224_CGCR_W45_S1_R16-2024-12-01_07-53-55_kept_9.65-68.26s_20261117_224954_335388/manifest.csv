@@ -1,0 +1,17 @@
+file,start_row,stop_row_exclusive,rows
+part_001.csv,0,367,367
+part_002.csv,367,734,367
+part_003.csv,734,1101,367
+part_004.csv,1101,1468,367
+part_005.csv,1468,1835,367
+part_006.csv,1835,2287,452
+part_007.csv,2287,2639,352
+part_008.csv,2639,2986,347
+part_009.csv,2986,3406,420
+part_010.csv,3406,3758,352
+part_011.csv,3758,4119,361
+part_012.csv,4119,4437,318
+part_013.csv,4437,4763,326
+part_014.csv,4763,5129,366
+part_015.csv,5129,5495,366
+part_016.csv,5495,5861,366
