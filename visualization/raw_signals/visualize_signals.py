@@ -116,7 +116,7 @@ def main() -> None:
 
     csv_path = args.csv
     if csv_path is None:
-        candidates = sorted(Path("Whales1and2_Raw_Labelled").glob("*.csv"))
+        candidates = sorted(Path("data/Whales1and2_Raw_Labelled").glob("*.csv"))
         if not candidates:
             parser.error("no CSV supplied and no CSVs found in Whales1and2_Raw_Labelled")
         csv_path = candidates[0]

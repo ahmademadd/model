@@ -164,14 +164,19 @@ Missing-support classes contribute zero to the reported macro-F1; balanced
 accuracy is separately reported over classes actually present. Do not repeatedly
 tune models against test results.
 
-## 5. Predict a new repetition
+## 5. Predict one or more repetitions
 
 ```sh
 activity-predict --run-dir runs/tcn_001 --input /path/to/repetition.csv
+
+# Or pass a directory; every CSV under it is predicted separately.
+activity-predict --run-dir runs/tcn_001 --input /path/to/repetitions/
 ```
 
 The CLI loads the saved model and preprocessing, creates an all-valid mask for
-the single repetition, and returns the selected activity and probabilities.
+each repetition independently, and returns the selected activity and
+probabilities. Directory input produces a JSON array with a relative path for
+each CSV.
 The activity need not be provided at inference. Probabilities are over the known
 activities; they do not establish detection of unfamiliar activities.
 
