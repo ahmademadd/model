@@ -110,7 +110,7 @@ document.querySelector('#fileInput').addEventListener('change',async e=>{const f
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("csv", nargs="?", type=Path, help="CSV recording to embed")
-    parser.add_argument("-o", "--output", type=Path, default=Path("wrist_motion_dashboard.html"))
+    parser.add_argument("-o", "--output", type=Path, default=Path(Path(__file__).absolute().parent / "wrist_motion_dashboard.html"))
     parser.add_argument("--max-points", type=int, default=4000, help="maximum embedded plot points")
     args = parser.parse_args()
 
