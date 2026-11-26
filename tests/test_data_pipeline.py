@@ -50,13 +50,15 @@ def test_quaternion_preprocessing_and_saved_scaling(tmp_path):
     sequence = preprocess_quaternions(load_sequence(source, DEFAULT_FEATURES), DEFAULT_FEATURES)
     np.testing.assert_allclose(sequence[:, 9:], [[1, 0, 0, 0], [half, 0, 0, half]], atol=1e-6)
     np.testing.assert_array_equal(sequence[:, :9], [[0] * 9, [1] * 9])
-    standardizer = Standardizer(DEFAULT_FEATURES).fit([sequence])
+    standardizer = Standardizer().fit([sequence], DEFAULT_FEATURES)
     transformed = standardizer.transform(sequence)
     np.testing.assert_allclose(transformed[:, :9], [[-1] * 9, [1] * 9])
     np.testing.assert_array_equal(transformed[:, 9:], sequence[:, 9:])
     state = tmp_path / "preprocessing.json"
     standardizer.save(state)
-    np.testing.assert_array_equal(Standardizer.load(state).transform(sequence), transformed)
+    np.testing.assert_array_equal(
+        Standardizer.load(state).transform(sequence), transformed
+    )
 
 
 def test_grouped_splits_preserve_classes_and_reject_leakage():

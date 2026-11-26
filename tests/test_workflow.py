@@ -9,7 +9,7 @@ from activity_classifier.audit import build_manifest
 from activity_classifier.config import DEFAULT_FEATURES, load_config
 from activity_classifier.evaluate import evaluate_run
 from activity_classifier.manifest import write_manifest
-from activity_classifier.predict import predict_file
+from activity_classifier.predict import Predictor
 from activity_classifier.train import train
 
 
@@ -43,7 +43,9 @@ def test_training_evaluation_and_inference(tmp_path):
     metrics = evaluate_run(run_dir)
     assert metrics["n_samples"] == 2
     assert np.asarray(metrics["confusion_matrix"]).shape == (2, 2)
-    prediction = predict_file(run_dir, tmp_path / "data" / "test-curl" / "part_001.csv")
+    prediction = Predictor(run_dir).predict_file(
+        tmp_path / "data" / "test-curl" / "part_001.csv"
+    )
     assert prediction["activity"] in ("curl", "press")
     assert set(prediction["probabilities"]) == {"curl", "press"}
     assert sum(prediction["probabilities"].values()) == pytest.approx(1.0)

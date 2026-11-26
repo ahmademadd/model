@@ -74,7 +74,7 @@ def train(manifest: str | Path, run_dir: str | Path, config: dict) -> dict:
     validation_raw = [load_sequence(row["path"], features) for row in partitions["validation"]]
     train_rotations = [preprocess_quaternions(sequence, features) for sequence in train_raw]
     validation_rotations = [preprocess_quaternions(sequence, features) for sequence in validation_raw]
-    preprocessing = Standardizer(features).fit(train_rotations)
+    preprocessing = Standardizer().fit(train_rotations, features)
     train_x = [preprocessing.transform(sequence) for sequence in train_rotations]
     validation_x = [preprocessing.transform(sequence) for sequence in validation_rotations]
     train_y = [class_ids[row["activity"]] for row in partitions["train"]]

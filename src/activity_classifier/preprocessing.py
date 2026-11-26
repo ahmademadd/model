@@ -63,20 +63,22 @@ def preprocess_quaternions(sequence: np.ndarray, feature_columns: list[str]) -> 
 class Standardizer:
     """Fit scalar-channel means/scales on training timesteps; leave unit quaternions intact."""
 
-    def __init__(self, feature_columns: list[str]):
-        self.feature_columns = list(feature_columns)
-        if not self.feature_columns or len(set(self.feature_columns)) != len(self.feature_columns):
-            raise ValueError("feature_columns must be nonempty and unique")
-        self.quaternion_indices = _quaternion_indices(self.feature_columns)
+    def __init__(self):
         self.mean = None
         self.scale = None
 
-    def fit(self, sequences) -> "Standardizer":
+    def fit(self, sequences, feature_columns: list[str]) -> "Standardizer":
+        columns = list(feature_columns)
+        if not columns or len(set(columns)) != len(columns):
+            raise ValueError("feature_columns must be nonempty and unique")
+        quaternion_indices = _quaternion_indices(columns)
         count = 0
-        mean = np.zeros(len(self.feature_columns), dtype=np.float64)
+        mean = np.zeros(len(columns), dtype=np.float64)
         moment = np.zeros_like(mean)
         for sequence in sequences:
             values = np.asarray(sequence, dtype=np.float64)
+            if values.ndim != 2 or values.shape[1] != len(columns) or not len(values):
+                raise ValueError("Each sequence must be a nonempty matrix matching feature_columns")
             n_rows = len(values)
             batch_mean = values.mean(axis=0)
             delta = batch_mean - mean
@@ -88,8 +90,8 @@ class Standardizer:
             raise ValueError("Cannot fit preprocessing without training samples")
         scale = np.sqrt(np.maximum(moment / count, 0))
         scale[scale < 1e-8] = 1.0
-        mean[self.quaternion_indices] = 0
-        scale[self.quaternion_indices] = 1
+        mean[quaternion_indices] = 0
+        scale[quaternion_indices] = 1
         self.mean, self.scale = mean, scale
         return self
 
@@ -108,25 +110,18 @@ class Standardizer:
         destination = Path(path)
         destination.parent.mkdir(parents=True, exist_ok=True)
         destination.write_text(json.dumps({
-            "version": 1, "feature_columns": self.feature_columns,
-            "quaternion_mode": "start_relative_wxyz", "mean": self.mean.tolist(),
-            "scale": self.scale.tolist(),
+            "mean": self.mean.tolist(), "scale": self.scale.tolist(),
         }, indent=2) + "\n", encoding="utf-8")
 
     @classmethod
     def load(cls, path: str | Path) -> "Standardizer":
         state = json.loads(Path(path).read_text(encoding="utf-8"))
-        if state.get("version") != 1 or state.get("quaternion_mode") != "start_relative_wxyz":
-            raise ValueError("Unsupported preprocessing artifact version or quaternion mode")
-        instance = cls(state["feature_columns"])
+        instance = cls()
         instance.mean = np.asarray(state["mean"], dtype=np.float64)
         instance.scale = np.asarray(state["scale"], dtype=np.float64)
-        shape = (len(instance.feature_columns),)
-        if (instance.mean.shape != shape or instance.scale.shape != shape
+        if (instance.mean.ndim != 1 or instance.mean.size == 0
+                or instance.scale.shape != instance.mean.shape
                 or not np.isfinite(instance.mean).all() or not np.isfinite(instance.scale).all()
                 or np.any(instance.scale <= 0)):
             raise ValueError("Invalid means/scales in preprocessing artifact")
-        if (np.any(instance.mean[instance.quaternion_indices] != 0)
-                or np.any(instance.scale[instance.quaternion_indices] != 1)):
-            raise ValueError("Quaternion channels must remain unscaled")
         return instance

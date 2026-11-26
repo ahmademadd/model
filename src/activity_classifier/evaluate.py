@@ -54,13 +54,13 @@ def evaluate_run(run_dir: str | Path, split: str = "test") -> dict:
     records = partitions[split]
     if not records:
         raise ValueError(f"No accepted samples in {split} partition")
-    model, preprocessing, classes = load_bundle(root)
+    model, preprocessing, classes, config = load_bundle(root)
     class_ids = {label: index for index, label in enumerate(classes)}
     labels = [class_ids[row["activity"]] for row in records]
     sequences = []
     for row in records:
-        sequence = load_sequence(row["path"], preprocessing.feature_columns)
-        sequence = preprocess_quaternions(sequence, preprocessing.feature_columns)
+        sequence = load_sequence(row["path"], config["feature_columns"])
+        sequence = preprocess_quaternions(sequence, config["feature_columns"])
         sequences.append(preprocessing.transform(sequence))
     dataset = make_dataset(sequences, labels, config["training"]["batch_size"])
     logits = np.concatenate([model(batch, training=False).numpy() for batch, _ in dataset])
